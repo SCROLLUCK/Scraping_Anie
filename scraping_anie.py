@@ -6,13 +6,15 @@ import os
 import subprocess
 
 url = 'https://www.crunchyroll.com/pt-br/my-hero-academia'
-diretorio_anime = 'F:\\Documentos\\AnieZillaProject\\videoTests\\'
+diretorio_anime = 'C:\\Users\\lucas\\Desktop\\GUARDA_TRECO(L)\\rouba_info\\asobi_teste\\'
+exe = 'C:\\Users\\lucas\\Desktop\\GUARDA_TRECO(L)\\rouba_info\\exiftool\\exiftool.exe'
+AbaEscolhida = 0 # crunchyroll fudendo o batalhão, valor: 0 as abas estão corretas no site
+TemporadaReal = 1
 
 configCFG = open(diretorio_anime +'episodios.cfg', 'w', encoding='utf-8')
 sauce = urllib.request.urlopen(url).read()
 soup = bs.BeautifulSoup(sauce, 'lxml')
 
-exe = 'F:\\Documentos\\AnieZillaProject\\exiftool\\exiftool.exe'
 listaArquivos = os.listdir(diretorio_anime)
 pattern = "\\bepisodio+-\\d+[.]mp4\\b"
 listaEpisodios = [i for i in listaArquivos if re.search(pattern, i)]
@@ -29,8 +31,6 @@ print(NumeroEpisodios) # Lista de Episodios no diretorio
 temporadas = soup.find_all('li', class_='season') # lista de temporadas
 temporadas = temporadas[::-1] # deixa temporadas em ordem crescente
 
-AbaEscolhida = 0 # crunchyroll fudendo o batalhão, valor: 0 as abas estão corretas no site
-TemporadaReal = 1
 if AbaEscolhida == 0:
     AbaEscolhida = TemporadaReal
 
@@ -52,11 +52,7 @@ for idy, temporada in enumerate(temporadas): #vare temporadas
             if episodio + 1 in NumeroEpisodios: # Se o episodio atual é um episodio que foi baixado, pega as infos
                 print(TemporadaReal,'-', episodio + 1, nome.get('alt'))
                 input_file = diretorio_anime + 'episodio-' + str(episodio + 1) +'.mp4'
-                print(input_file)
-                print(exe)
                 process = subprocess.Popen([exe, input_file], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines = True)
-                print(process.stderr)
-                print(process.stdout)
                 for idx, output in enumerate(process.stdout):
                     if idx == 18 or idx == 36:
                         meta = str(output)
