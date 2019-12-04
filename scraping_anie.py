@@ -6,25 +6,24 @@ import os
 import subprocess
 
 url = 'https://www.crunchyroll.com/pt-br/my-hero-academia'
-diretorio_anime = 'C:\\Users\\lucas\\desktop\\GUARDA_TRECO(L)\\rouba_info\\asobi_teste\\'
+diretorio_anime = 'F:\\Documentos\\AnieZillaProject\\videoTests\\'
 
 configCFG = open(diretorio_anime +'episodios.cfg', 'w', encoding='utf-8')
 sauce = urllib.request.urlopen(url).read()
 soup = bs.BeautifulSoup(sauce, 'lxml')
 
-exe = 'C:\\Users\\lucas\\Desktop\\GUARDA_TRECO(L)\\rouba_info\\exiftool\\exiftool.exe'
+exe = 'F:\\Documentos\\AnieZillaProject\\exiftool\\exiftool.exe'
 listaArquivos = os.listdir(diretorio_anime)
 pattern = "\\bepisodio+-\\d+[.]mp4\\b"
 listaEpisodios = [i for i in listaArquivos if re.search(pattern, i)]
-NumeroEpisodios = []
+NumeroEpisodios = set({})
 
 for string in listaEpisodios:
     x = re.findall('\\d+', string[:-1])
     if x:
-        NumeroEpisodios.append(int(''.join(x)))
+        NumeroEpisodios.add(int(''.join(x)))
 
-NumeroEpisodios.sort()
-meus = 0
+NumeroEpisodios
 print(NumeroEpisodios) # Lista de Episodios no diretorio
 
 temporadas = soup.find_all('li', class_='season') # lista de temporadas
@@ -37,24 +36,27 @@ if AbaEscolhida == 0:
 
 for idy, temporada in enumerate(temporadas): #vare temporadas
 
-    if AbaEscolhida-1 == idy: # Se temporada atual é == a temporada escolhida, então pege as infos dos episodios
+    if AbaEscolhida - 1 == idy: # Se temporada atual é == a temporada escolhida, então pege as infos dos episodios
 
         divs = temporada.find_all('div', class_='wrapper container-shadow hover-classes')
         ignore = 'Episódio SP'
         for div in divs: #Remove Episodios Especias da Lista de Episódios
             spans = div.find_all('span', class_='block')
-            for idS, span in enumerate(spans):
+            for span in spans:
                 if ignore in span.string:
                     div.a.decompose()
 
         nomes = temporada.find_all('img') #pega nomes dos episodios
         nomes = nomes[::-1] #deixa episodios em ordem crescente
         for episodio, nome in enumerate(nomes):
-            if NumeroEpisodios[meus] == (episodio+1): # Se o episodio atual é um episodio que foi baixado, pega as infos
-                print(TemporadaReal,'-',episodio+1,nome.get('alt'))
-
-                input_file = diretorio_anime+'episodio-'+ str(episodio+1)+'.mp4'
-                process = subprocess.Popen([exe,input_file],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,universal_newlines=True)
+            if episodio + 1 in NumeroEpisodios: # Se o episodio atual é um episodio que foi baixado, pega as infos
+                print(TemporadaReal,'-', episodio + 1, nome.get('alt'))
+                input_file = diretorio_anime + 'episodio-' + str(episodio + 1) +'.mp4'
+                print(input_file)
+                print(exe)
+                process = subprocess.Popen([exe, input_file], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines = True)
+                print(process.stderr)
+                print(process.stdout)
                 for idx, output in enumerate(process.stdout):
                     if idx == 18 or idx == 36:
                         meta = str(output)
@@ -63,10 +65,9 @@ for idy, temporada in enumerate(temporadas): #vare temporadas
                         else: #metadado referente à qualidade do video
                             qualidade = meta[34:-1]
 
-                dados_ep = {'temporada' : TemporadaReal, 'episodio' : episodio+1, 'nome' : str(nome.get('alt')), 'duracao' : duracao,  'thumb' : 'thumb-'+ str(episodio+1) +'.png', 'qualidade' : qualidade+'p' }
+                dados_ep = {'temporada' : TemporadaReal, 'episodio' : episodio + 1, 'nome' : str(nome.get('alt')), 'duracao' : duracao,  'thumb' : 'thumb-'+ str(episodio+1) + '.png', 'qualidade' : qualidade + 'p' }
                 dados_like_json = json.dumps(dados_ep, ensure_ascii=False).encode('utf8')
                 configCFG.write(dados_like_json.decode())
                 configCFG.write('\n')
-                meus = meus + 1
 
 configCFG.close()
