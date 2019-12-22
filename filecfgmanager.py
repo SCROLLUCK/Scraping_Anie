@@ -1,14 +1,18 @@
 import os, subprocess, re, json
+from tkinter import messagebox
 
 class CFGfile(object):
 
     def __init__(self, path, episodeList):
         
+        self.isExpection = False
         self.path = path
         self.episodeNumbers = set({})
         self.episodeList = episodeList
         self.episodeInfoList = []
-        self.exe = os.getcwd() + os.sep + 'exiftool/' + 'exiftool.exe'
+        self.exe = os.getcwd() + os.sep + 'exiftool' + os.sep + 'exiftool.exe'
+
+        print(self.exe)
     
     def getEpisodesNnumbers(self):
 
@@ -24,12 +28,18 @@ class CFGfile(object):
             if number in self.episodeNumbers:
 
                 input_file = self.path + 'episodio-' + str(number) + '.mp4'
-                process = subprocess.Popen([self.exe, input_file], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines = True)
-
+                
+                process = subprocess.Popen([self.exe, input_file], shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines = True)
+                    
                 info = {}
-                for ouput in process.stdout:
-                    if re.search(('(Media Duration|Source Image Height)'), ouput):
-                        string = re.split(':', ouput, maxsplit = 1)
+
+                for output in process.stdout:
+
+                    if output == 'The system cannot find the path specified.\n':
+                        raise FileNotFoundError(self.exe + ' não encontrado')
+
+                    if re.search(('(Media Duration|Source Image Height)'), output):
+                        string = re.split(':', output, maxsplit = 1)
                         info[string[0].strip()] = string[1].strip()
 
                 episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : info['Media Duration'][2:], 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : info['Source Image Height'] + 'p' }
