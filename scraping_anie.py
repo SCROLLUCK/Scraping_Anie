@@ -80,9 +80,8 @@ class autoPage(Frame):
         self.entryTextLink = StringVar()
         self.entryLink = ttk.Entry(self, width = 45, textvariable = self.entryTextLink)
         self.entryLink.grid(row = 1, column = 0, padx = 1)
-        self.entryLink.focus()
 
-        self.searchLogo = PhotoImage(file = resource_path('assets/searchIcon.png'))
+        self.searchLogo = PhotoImage(file = resource_path(r'assets\searchIcon.png'))
         self.searchButton = ttk.Button(self, image = self.searchLogo, width = 8, command = self.search)
         self.searchButton.image = self.searchLogo
         self.searchButton.grid(row = 1, column = 1, padx = 1)
@@ -160,7 +159,7 @@ class autoPage(Frame):
         self.entryLink.delete(0, END)
         self.generateCfgButton['state'] = 'disabled'
 
-    def showInfoCommand(self):
+    def showInfoCommand(self):     
         
         if self.fileNames:
 
@@ -173,10 +172,15 @@ class autoPage(Frame):
             season = self.getSeason()
             names = self.animeInfo.getAnimeNames(season)
 
+            messagebox.showwarning('AnieGrabber', 'O diretório atual do exiftool é: ' + self.cfgFileObject.exe)
+
             try:
                 self.cfgFileObject.getEpisodeInfo(names, season)
             except FileNotFoundError as fnf:
-                messagebox.showerror('AnieGrabber' , fnf)
+                messagebox.showerror('AnieGrabber' , str(fnf) + '. O programa precisa estar na mesma pasta do AnieGrabber.')
+                return
+
+            if self.cfgFileObject.isExpection == True:
                 return
 
             episodeInfoList = self.cfgFileObject.getEpisodeInfoList()
