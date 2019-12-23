@@ -122,7 +122,7 @@ class autoPage(Frame):
         keyList = ['temporada', 'episodio', 'nome', 'duracao', 'thumb', 'qualidade']
 
         inputList = re.split('\n', self.episodeInfoTextBox.get('1.0', 'end-2c'))
-
+        
         flag = False
         for info1, info2 in zip(inputList, self.cfgFileObject.episodeInfoList):
             
@@ -181,10 +181,13 @@ class autoPage(Frame):
                 if self.episodeInfoTextBox.get('1.0', END) != '':
                     self.episodeInfoTextBox.delete('1.0', END)
 
-                for info in episodeInfoList:
-                    self.episodeInfoTextBox.insert(END, str(info) + '\n')
-
-                self.generateCfgButton['state'] = 'able'
+                if episodeInfoList:
+                    for info in episodeInfoList:
+                        self.episodeInfoTextBox.insert(END, str(info) + '\n')
+                        self.generateCfgButton['state'] = 'able'
+                else:
+                    self.episodeInfoTextBox.insert(END, '{ Não há episódios para a temporada escolhida }\n')
+               
             else:
                 messagebox.showerror('AnieGrabber', 'Parece que um ou mais arquivos não estão com o nome correto.')
                 self.resetEpisodeInfoTextBox()
@@ -206,14 +209,17 @@ class autoPage(Frame):
         
         fileNames = filedialog.askopenfilenames(initialdir = os.getcwd(), title = 'Selecione os Episódios', filetypes = [('Arquivos .mp4', '*.mp4')])
 
-        self.directoryPath = '\\'.join(re.split('/', fileNames[0])[:-1]) + os.sep
+        if fileNames:
 
-        if fileNames != '':
-            for name in fileNames:
-                self.fileNames.append(re.split('/', name)[-1])
-        else:
-            messagebox.showwarning('AnieGrabber', 'Selecione algum episódio.')
-            return
+            self.directoryPath = '\\'.join(re.split('/', fileNames[0])[:-1]) + os.sep
+
+            if fileNames != '':
+                for name in fileNames:
+                    self.fileNames.append(re.split('/', name)[-1])
+            else:
+                messagebox.showwarning('AnieGrabber', 'Selecione algum episódio.')
+        
+        return
 
     def getAnimeInfo(self):
         self.animeInfo = GetUrlInfo(self.entryTextLink.get())
@@ -247,9 +253,13 @@ class autoPage(Frame):
             return
 
         self.seasonList = self.animeInfo.getSeasonName()
-
-        for num, season in enumerate(self.seasonList, 0):
-            self.seasonDict[season] = num
+        
+        if self.seasonList:
+            for num, season in enumerate(self.seasonList, 0):
+                self.seasonDict[season] = num
+        else:
+            self.seasonList.append('Temporada 1')
+            self.seasonDict['Temporada 1'] = 0
 
         self.updateSeasonListBox()
         self.listSeasonBoxSelected = self.listSeasonBox.get(0)
@@ -257,12 +267,8 @@ class autoPage(Frame):
     def updateSeasonListBox(self):
 
         self.listSeasonBox.delete(0, 'end')
-
-        if self.seasonList != None:
-            for season in self.seasonList:
-                self.listSeasonBox.insert('end', season)
-        else:
-            messagebox.showwarning('AnieGrabber', 'Esse anime não tem temporadas? Melhor Verificar.')
+        self.listSeasonBox.insert('end', *self.seasonList)
+        
 
 def main():
 
