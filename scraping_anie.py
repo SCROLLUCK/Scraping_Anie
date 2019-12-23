@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk, messagebox, filedialog, scrolledtext
+from tkinter import ttk, messagebox, filedialog
 from geturlinfo import *
 from filecfgmanager import *
 import os, sys, re, json
@@ -81,7 +81,7 @@ class autoPage(Frame):
         self.entryLink = ttk.Entry(self, width = 45, textvariable = self.entryTextLink)
         self.entryLink.grid(row = 1, column = 0, padx = 1)
 
-        self.searchLogo = PhotoImage(file = resource_path(r'assets\searchIcon.png'))
+        self.searchLogo = PhotoImage(file = resource_path('searchIcon.png'))
         self.searchButton = ttk.Button(self, image = self.searchLogo, width = 8, command = self.search)
         self.searchButton.image = self.searchLogo
         self.searchButton.grid(row = 1, column = 1, padx = 1)
@@ -172,11 +172,11 @@ class autoPage(Frame):
             season = self.getSeason()
             names = self.animeInfo.getAnimeNames(season)
 
-            messagebox.showwarning('AnieGrabber', 'O diretório atual do exiftool é: ' + self.cfgFileObject.exe)
+            # messagebox.showwarning('AnieGrabber', 'O diretório atual do exiftool é: ' + self.cfgFileObject.exe)
 
             try:
                 self.cfgFileObject.getEpisodeInfo(names, season)
-            except FileNotFoundError as fnf:
+            except Exception as fnf:
                 messagebox.showerror('AnieGrabber' , str(fnf) + '. O programa precisa estar na mesma pasta do AnieGrabber.')
                 return
 
@@ -215,7 +215,7 @@ class autoPage(Frame):
         
         fileNames = filedialog.askopenfilenames(initialdir = os.getcwd(), title = 'Selecione os Episódios', filetypes = [('Arquivos .mp4', '*.mp4')])
 
-        self.directoryPath = '/'.join(re.split('/', fileNames[0])[:-1]) + os.sep
+        self.directoryPath = '\\'.join(re.split('/', fileNames[0])[:-1]) + os.sep
 
         if fileNames != '':
             for name in fileNames:
