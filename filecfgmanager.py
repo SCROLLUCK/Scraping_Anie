@@ -39,27 +39,23 @@ class CFGfile(object):
                 episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(quality)[:-2] + 'p' }
                 self.episodeInfoList.append(episodeData)
 
+                self.videoCaptureObject.release()
+
     def getCorretDuration(self):
         
         h = int(self.tagObject.duration / 3600)
         m = int(self.tagObject.duration % 3600 / 60)
         s = int(self.tagObject.duration % 3600 % 60)
 
+        if m <=9: m = '0'+str(m)
+        if s <=9: s = '0'+str(s)
+        duration = str(m)+':'+str(s)
+
         if h > 0:
-            if h <= 9:
-                return '0' + str(h) + ':' + str(m) + ':' + str(s)
-        else:
-            if m <= 9:
-                m = '0' + str(m)
-            if s <= 9:
-                s = '0' + str(s)
-
-            if not isinstance(m, str):
-                m = str(m)
-            if not isinstance(s, str):
-                s = str(s)
-
-            return m + ':' + s
+            if h <=9: h = '0' + str(h)
+            duration = str(h)+':'+duration
+            
+        return duration
 
     def getEpisodeInfoList(self):
 
