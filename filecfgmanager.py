@@ -1,5 +1,6 @@
-import os, subprocess, re, json
-from tkinter import messagebox
+import os, re, json
+from cv2 import VideoCapture
+from tinytag import TinyTag
 
 class CFGfile(object):
 
@@ -10,9 +11,8 @@ class CFGfile(object):
         self.episodeNumbers = set({})
         self.episodeList = episodeList
         self.episodeInfoList = []
-        self.exe = os.getcwd() + os.sep + 'exiftool' + os.sep + 'exiftool.exe'
-
-        print(self.exe)
+        self.videoCaptureObject = None
+        self.tagObject = None
     
     def getEpisodesNnumbers(self):
 
@@ -28,22 +28,38 @@ class CFGfile(object):
             if number in self.episodeNumbers:
 
                 input_file = self.path + 'episodio-' + str(number) + '.mp4'
-                
-                process = subprocess.Popen([self.exe, input_file], shell = True, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines = True)
-                    
-                info = {}
 
-                for output in process.stdout:
+                self.videoCaptureObject = VideoCapture(input_file)
+                self.tagObject = TinyTag.get(input_file)
+                self.tagObject._get_parser_for_filename('mp4')
 
-                    if output == 'The system cannot find the path specified.\n':
-                        raise FileNotFoundError(self.exe + ' não encontrado')
+                duration = self.getCorretDuration()
+                quality = self.videoCaptureObject.get(4)
 
-                    if re.search(('(Media Duration|Source Image Height)'), output):
-                        string = re.split(':', output, maxsplit = 1)
-                        info[string[0].strip()] = string[1].strip()
-
-                episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : info['Media Duration'][2:], 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : info['Source Image Height'] + 'p' }
+                episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(quality)[:-2] + 'p' }
                 self.episodeInfoList.append(episodeData)
+
+    def getCorretDuration(self):
+        
+        h = int(self.tagObject.duration / 3600)
+        m = int(self.tagObject.duration % 3600 / 60)
+        s = int(self.tagObject.duration % 3600 % 60)
+
+        if h > 0:
+            if h <= 9:
+                return '0' + str(h) + ':' + str(m) + ':' + str(s)
+        else:
+            if m <= 9:
+                m = '0' + str(m)
+            if s <= 9:
+                s = '0' + str(s)
+
+            if not isinstance(m, str):
+                m = str(m)
+            if not isinstance(s, str):
+                s = str(s)
+
+            return m + ':' + s
 
     def getEpisodeInfoList(self):
 
