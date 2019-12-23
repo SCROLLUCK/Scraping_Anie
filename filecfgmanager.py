@@ -1,5 +1,5 @@
 import os, re, json
-from cv2 import VideoCapture
+from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
 from tinytag import TinyTag
 
 class CFGfile(object):
@@ -11,8 +11,6 @@ class CFGfile(object):
         self.episodeNumbers = set({})
         self.episodeList = episodeList
         self.episodeInfoList = []
-        self.videoCaptureObject = None
-        self.tagObject = None
     
     def getEpisodesNnumbers(self):
 
@@ -29,31 +27,36 @@ class CFGfile(object):
 
                 input_file = self.path + 'episodio-' + str(number) + '.mp4'
 
-                self.videoCaptureObject = VideoCapture(input_file)
-                self.tagObject = TinyTag.get(input_file)
-                self.tagObject._get_parser_for_filename('mp4')
+                videoInfo = VideoCapture(input_file)
+                fps = videoInfo.get(CAP_PROP_FPS)
+                frameCount = videoInfo.get(CAP_PROP_FRAME_COUNT)
 
-                duration = self.getCorretDuration()
-                quality = self.videoCaptureObject.get(4)
+                duration = self.getCorretDuration(int(round(frameCount / fps, 0)))
+                quality = videoInfo.get(4)
 
                 episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(quality)[:-2] + 'p' }
                 self.episodeInfoList.append(episodeData)
 
-                self.videoCaptureObject.release()
+                videoInfo.release()
 
-    def getCorretDuration(self):
+    def getCorretDuration(self, duration):
         
-        h = int(self.tagObject.duration / 3600)
-        m = int(self.tagObject.duration % 3600 / 60)
-        s = int(self.tagObject.duration % 3600 % 60)
+        h = int(duration / 3600)
+        m = int(duration % 3600 / 60)
+        s = int(duration % 3600 % 60)
 
-        if m <=9: m = '0'+str(m)
-        if s <=9: s = '0'+str(s)
-        duration = str(m)+':'+str(s)
+        if m <= 9: 
+            m = '0' + str(m)
+        if s <= 9: 
+            s = '0' + str(s)
+
+        duration = str(m) + ':' + str(s)
 
         if h > 0:
-            if h <=9: h = '0' + str(h)
-            duration = str(h)+':'+duration
+            if h <= 9: 
+                h = '0' + str(h)
+                
+            duration = str(h) + ':' + duration
             
         return duration
 
