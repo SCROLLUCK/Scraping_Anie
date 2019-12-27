@@ -1,6 +1,5 @@
 import os, re, json
 from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
-from tinytag import TinyTag
 
 class CFGfile(object):
 
