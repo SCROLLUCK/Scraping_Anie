@@ -1,5 +1,6 @@
 import bs4 as bs
 import urllib.request, re
+from constants import *
 
 class GetUrlInfo(object):
 
@@ -18,7 +19,7 @@ class GetUrlInfo(object):
 
         for div in divs:
             spans = div.find_all('span', class_ = 'block')
-            if any([re.search('\\bEpisódio (SP|\\d+.\\d+)\\b', str(i)) for i in spans]):
+            if any([re.search(SPECIAL_EPISODE, str(i)) for i in spans]):
                 div.a.decompose()
 
         names = []
