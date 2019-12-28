@@ -1,6 +1,7 @@
 import os, re, json
-from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
 from tinytag import TinyTag
+from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
+from constants import *
 
 class CFGfile(object):
 
@@ -12,7 +13,7 @@ class CFGfile(object):
         self.episodeList = episodeList
         self.episodeInfoList = []
     
-    def getEpisodesNnumbers(self):
+    def getEpisodesNumbers(self):
 
         for number in self.episodeList:
             x = re.findall('\\d+', number[:-1])
@@ -52,11 +53,8 @@ class CFGfile(object):
 
         duration = str(m) + ':' + str(s)
 
-        if h > 0:
-            if h <= 9: 
-                h = '0' + str(h)
-                
-            duration = str(h) + ':' + duration
+        if 0 < h <= 9: 
+            duration = '0' + str(h) + ':' + duration
             
         return duration
 
@@ -74,4 +72,4 @@ class CFGfile(object):
     
     def epsodeNameVerify(self):
 
-        return all([re.search('\\bepisodio-\\d+[.]mp4\\b', j) for j in self.episodeList])
+        return all([re.search(EPISODE_NAME, j) for j in self.episodeList])
