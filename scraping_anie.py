@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox, filedialog
 from geturlinfo import *
 from filecfgmanager import *
 import os, sys, re, json
+from constants import *
 
 def resource_path(relative_path):
     
@@ -81,7 +82,7 @@ class autoPage(Frame):
         self.entryLink = ttk.Entry(self, width = 45, textvariable = self.entryTextLink)
         self.entryLink.grid(row = 1, column = 0, padx = 1)
 
-        self.searchLogo = PhotoImage(file = resource_path(r'assets\searchIcon.png'))
+        self.searchLogo = PhotoImage(file = resource_path('searchIcon.png'))
         self.searchButton = ttk.Button(self, image = self.searchLogo, width = 8, command = self.search)
         self.searchButton.image = self.searchLogo
         self.searchButton.grid(row = 1, column = 1, padx = 1)
@@ -96,11 +97,11 @@ class autoPage(Frame):
         self.openDirectoryButton = ttk.Button(self, text = 'Escolher episódios', width = 20, command = self.fileSearchCommand)
         self.openDirectoryButton.grid(row = 7, column = 0, columnspan = 2, padx = 1, pady = 2)
 
-        self.episodeInfoLabel = Label(self, text = 'Informações dos Episódios', font = ('Calibri', 10, 'italic'), width = 54)
-        self.episodeInfoLabel.grid(row = 0, column = 2, columnspan = 3)
+        self.episodeInfoLabel = Label(self, text = 'Informações dos Episódios', font = ('Calibri', 10, 'italic'), width = 65)
+        self.episodeInfoLabel.grid(row = 0, column = 2, columnspan = 4)
 
         self.textBoxFrame = Frame(self)
-        self.episodeInfoTextBox = Text(self.textBoxFrame, width = 56, height = 20, wrap = 'none')
+        self.episodeInfoTextBox = Text(self.textBoxFrame, width = 105, height = 20, wrap = 'none')
         self.verticalScrollBar = Scrollbar(self.textBoxFrame, orient = 'vertical', command = self.episodeInfoTextBox.yview)
         self.horizontalScrollBar = Scrollbar(self.textBoxFrame, orient = 'horizontal', command = self.episodeInfoTextBox.xview)
         self.episodeInfoTextBox.configure(yscrollcommand = self.verticalScrollBar.set, xscrollcommand = self.horizontalScrollBar.set)
@@ -110,17 +111,12 @@ class autoPage(Frame):
         self.verticalScrollBar.grid(row = 0, column = 1, sticky = 'ns')
         self.horizontalScrollBar.grid(row = 1, column = 0, sticky = 'ew')
 
-        self.showEpisodesInfoButton = ttk.Button(self, text = 'Exibir Informações', width = 20, command = self.showInfoCommand)
-        self.showEpisodesInfoButton.grid(row = 7, column = 3, sticky = 'e')
-
         self.generateCfgButton = ttk.Button(self, text = 'Gerar CFG', width = 20, state = 'disabled', command = self.generateCfgCommand)
         self.generateCfgButton.grid(row = 7, column = 4, sticky = 'w')
 
     def generateCfgCommand(self):
         
         editedJasonList = []
-        keyList = ['temporada', 'episodio', 'nome', 'duracao', 'thumb', 'qualidade']
-
         inputList = re.split('\n', self.episodeInfoTextBox.get('1.0', 'end-2c'))
         
         flag = False
@@ -129,7 +125,7 @@ class autoPage(Frame):
             editJson = json.loads(re.sub('\'', '"', re.sub('"', '', info1)))
             editedJasonList.append(editJson)
 
-            for key in keyList:
+            for key in KEYLIST:
 
                 if editJson[key] != info2[key]:
                     flag = True
@@ -163,7 +159,7 @@ class autoPage(Frame):
         if self.fileNames:
 
             self.cfgFileObject = CFGfile(self.directoryPath, self.fileNames)
-            self.cfgFileObject.getEpisodesNnumbers()
+            self.cfgFileObject.getEpisodesNumbers()
 
             season = self.getSeason()
             names = self.animeInfo.getAnimeNames(season)
@@ -189,7 +185,7 @@ class autoPage(Frame):
                     self.episodeInfoTextBox.insert(END, '{ Não há episódios para a temporada escolhida }\n')
                
             else:
-                messagebox.showerror('AnieGrabber', 'Parece que um ou mais arquivos não estão com o nome correto.')
+                messagebox.showerror('AnieGrabber', 'Parece que um ou mais arquivos estão com o nome icorreto.')
                 self.resetEpisodeInfoTextBox()
                 self.resetSeasonListBox()
                 self.entryLink.delete(0, END)
@@ -212,17 +208,19 @@ class autoPage(Frame):
         if fileNames:
 
             self.directoryPath = '\\'.join(re.split('/', fileNames[0])[:-1]) + os.sep
+           
+            for name in fileNames:
+                self.fileNames.append(re.split('/', name)[-1])
 
-            if fileNames != '':
-                for name in fileNames:
-                    self.fileNames.append(re.split('/', name)[-1])
-            else:
-                messagebox.showwarning('AnieGrabber', 'Selecione algum episódio.')
+            self.showInfoCommand()
         
-        return
 
     def getAnimeInfo(self):
-        self.animeInfo = GetUrlInfo(self.entryTextLink.get())
+
+        if re.search(REGEX_URL, self.entryTextLink.get()):
+            self.animeInfo = GetUrlInfo(self.entryTextLink.get())
+        else:
+            raise ValueError('Formato de link inválido')
 
     def seasonListBoxSelectItem(self, event):
 
@@ -273,9 +271,9 @@ class autoPage(Frame):
 def main():
 
     app = App()
-    app.geometry('800x400')
+    app.geometry('1200x400')
     app.title('AnieGrabber')
-    app.resizable(0, 0)
+    # app.resizable(0, 0)
     app.mainloop()
 
 main()
