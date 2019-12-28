@@ -1,12 +1,10 @@
-from tkinter import *
-from tkinter import ttk, messagebox, filedialog
-from geturlinfo import *
-from filecfgmanager import *
+from tkinter import ttk, messagebox, filedialog, Frame, Tk, Label, StringVar, END, DISABLED, PhotoImage, Listbox, Text, Scrollbar
+from geturlinfo import urllib, GetUrlInfo
+from filecfgmanager import CFGfile
 import os, sys, re, json
 from constants import *
 
 def resource_path(relative_path):
-    
     try:
         base_path = sys._MEIPASS
     except Exception:
