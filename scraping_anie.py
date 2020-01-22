@@ -12,15 +12,25 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+DEBUG = False
+
 class App(Tk):
 
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
         self.container = Frame(self)
+
+        if DEBUG:
+            self.iconbitmap(resource_path(r'assets\anieGrabberIcon.ico'))
+        else:
+            self.iconbitmap(resource_path(r'anieGrabberIcon.ico'))
+            
         self.container.pack(side = 'top', fill = 'both', expand = True)
         self.container.grid_rowconfigure(0, weight = 1)
         self.container.grid_columnconfigure(0, weight = 1)
+        self.hscreen = self.winfo_screenheight()
+        self.wscreen = self.winfo_screenwidth()
 
         self.frames = {}
 
@@ -29,13 +39,23 @@ class App(Tk):
             self.frames[F] = frame
             frame.grid(row = 0, column = 0, sticky = 'nsew')
 
-        self.showFrame(mainPage)
+        self.loadPage(mainPage, 280, 461)
+
+    def loadPage(self, page, width, height):
+
+        self.geometry('{}x{}'.format(width, height))
+        x = int(self.winfo_screenwidth() / 2 - width / 2)
+        y = int(self.winfo_screenheight() / 3 - height / 2)
+        self.geometry('+{}+{}'.format(x, y))
+        self.minsize(width, height)
+
+        self.showFrame(page)
 
     def showFrame(self, context):
 
         frame = self.frames[context]
         frame.tkraise()
-    
+        
 class mainPage(Frame):
 
     def __init__(self, parent, controller, name = 'mainPage'):
@@ -49,9 +69,9 @@ class mainPage(Frame):
         self.buttonsFrame.pack(pady = 50, padx = 10)
         self.titleLabel = Label(self.buttonsFrame, text = 'Escolha a Opção', font = ('Calibri', 10, 'bold'))
         self.titleLabel.pack(pady = 2)
-        self.manualButton = ttk.Button(self.buttonsFrame, text = 'Manual', width = 30, state = DISABLED, command = lambda: controller.showFrame(manualPage))
+        self.manualButton = ttk.Button(self.buttonsFrame, text = 'Manual', width = 30, state = DISABLED, command = lambda: controller.loadPage(manualPage, 1200, 400))
         self.manualButton.pack(pady = 2, padx = 3)
-        self.automaticButton = ttk.Button(self.buttonsFrame, text = 'Automático', width = 30, command = lambda: controller.showFrame(autoPage))
+        self.automaticButton = ttk.Button(self.buttonsFrame, text = 'Automático', width = 30, command = lambda: controller.loadPage(autoPage, 1200, 400))
         self.automaticButton.pack(pady = 2)
 
 class manualPage(Frame):
@@ -80,7 +100,11 @@ class autoPage(Frame):
         self.entryLink = ttk.Entry(self, width = 45, textvariable = self.entryTextLink)
         self.entryLink.grid(row = 1, column = 0, padx = 1)
 
-        self.searchLogo = PhotoImage(file = resource_path('searchIcon.png'))
+        if DEBUG:
+            self.searchLogo = PhotoImage(file = resource_path(r'assets\searchIcon.png'))
+        else:
+            self.searchLogo = PhotoImage(file = resource_path(r'searchIcon.png'))
+
         self.searchButton = ttk.Button(self, image = self.searchLogo, width = 8, command = self.search)
         self.searchButton.image = self.searchLogo
         self.searchButton.grid(row = 1, column = 1, padx = 1)
@@ -269,9 +293,8 @@ class autoPage(Frame):
 def main():
 
     app = App()
-    app.geometry('1200x400')
     app.title('AnieGrabber')
-    # app.resizable(0, 0)
+    app.resizable(0, 0)
     app.mainloop()
 
 main()
