@@ -202,7 +202,7 @@ class autoPage(Frame):
                 if episodeInfoList:
                     for info in episodeInfoList:
                         self.episodeInfoTextBox.insert(END, str(info) + '\n')
-                        self.generateCfgButton['state'] = 'able'
+                    self.generateCfgButton['state'] = 'able'
                 else:
                     self.episodeInfoTextBox.insert(END, '{ Não há episódios para a temporada escolhida }\n')
                
