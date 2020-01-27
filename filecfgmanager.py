@@ -1,5 +1,4 @@
-import os, re, json
-from tinytag import TinyTag
+import os, re, json, subprocess
 from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
 from constants import *
 
@@ -29,10 +28,7 @@ class CFGfile(object):
                 input_file = self.path + 'episodio-' + str(number) + '.mp4'
 
                 videoInfo = VideoCapture(input_file)
-                fps = videoInfo.get(CAP_PROP_FPS)
-                frameCount = videoInfo.get(CAP_PROP_FRAME_COUNT)
-
-                duration = self.getCorretDuration(int(round(frameCount / fps, 0)))
+                duration = self.getDuration(input_file)
                 quality = videoInfo.get(4)
 
                 episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(quality)[:-2] + 'p' }
@@ -40,23 +36,23 @@ class CFGfile(object):
 
                 videoInfo.release()
 
-    def getCorretDuration(self, duration):
+    def getDuration(self, input_video):
         
+        result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        duration = float(result.stdout)
         h = int(duration / 3600)
         m = int(duration % 3600 / 60)
         s = int(duration % 3600 % 60)
-
-        if m <= 9: 
-            m = '0' + str(m)
-        if s <= 9: 
-            s = '0' + str(s)
-
-        duration = str(m) + ':' + str(s)
-
-        if 0 < h <= 9: 
-            duration = '0' + str(h) + ':' + duration
-            
-        return duration
+        
+        if m <=9: m = '0'+str(m)
+        if s <=9: s = '0'+str(s)
+        time = str(m)+':'+str(s)
+        
+        if h > 0:
+            if h <=9: h = '0' + str(h)
+            time = h+':'+time
+        
+        return time
 
     def getEpisodeInfoList(self):
 

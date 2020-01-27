@@ -12,7 +12,7 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-DEBUG = False
+DEBUG = True
 
 class App(Tk):
 
@@ -22,7 +22,7 @@ class App(Tk):
         self.container = Frame(self)
 
         if DEBUG:
-            self.iconbitmap(resource_path(r'assets\anieGrabberIcon.ico'))
+            self.iconbitmap(resource_path(r'assets\\anieGrabberIcon.ico'))
         else:
             self.iconbitmap(resource_path(r'anieGrabberIcon.ico'))
             
