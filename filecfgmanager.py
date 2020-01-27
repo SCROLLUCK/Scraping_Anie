@@ -1,12 +1,12 @@
-import os, re, json
-from tinytag import TinyTag
-from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
 from constants import *
-
+from threading import Thread
+import os, re, json, subprocess
 class CFGfile(object):
 
     def __init__(self, path, episodeList):
         
+        self.quality = None
+        self.duration = None
         self.isExpection = False
         self.path = path
         self.episodeNumbers = set({})
@@ -27,21 +27,43 @@ class CFGfile(object):
             if number in self.episodeNumbers:
 
                 input_file = self.path + 'episodio-' + str(number) + '.mp4'
+                
+                t1 = Thread(target = self.getCorretDuration, args = (input_file, ))
+                t2 = Thread(target = self.getCorretQuality, args = (input_file, ))
 
-                videoInfo = VideoCapture(input_file)
-                fps = videoInfo.get(CAP_PROP_FPS)
-                frameCount = videoInfo.get(CAP_PROP_FRAME_COUNT)
+                t1.start()
+                t2.start()
 
-                duration = self.getCorretDuration(int(round(frameCount / fps, 0)))
-                quality = videoInfo.get(4)
-
-                episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(quality)[:-2] + 'p' }
+                t1.join()
+                t2.join()
+                
+                episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
                 self.episodeInfoList.append(episodeData)
 
-                videoInfo.release()
+    def getCorretQuality(self, fileName):
 
-    def getCorretDuration(self, duration):
+        quality = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                                "stream=height", "-of",
+                                "default=noprint_wrappers=1:nokey=1", fileName],
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.STDOUT, 
+                                stdin = subprocess.PIPE, 
+                                universal_newlines = True, shell = True)
         
+        self.quality = re.split('\n', quality.stdout)[0]
+
+    def getCorretDuration(self, fileName):
+
+        duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                                "format=duration", "-of",
+                                "default=noprint_wrappers=1:nokey=1", fileName],
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.STDOUT, 
+                                stdin = subprocess.PIPE, 
+                                shell = True)
+
+        duration = float(duration.stdout)
+
         h = int(duration / 3600)
         m = int(duration % 3600 / 60)
         s = int(duration % 3600 % 60)
@@ -55,8 +77,8 @@ class CFGfile(object):
 
         if 0 < h <= 9: 
             duration = '0' + str(h) + ':' + duration
-            
-        return duration
+        
+        self.duration = duration
 
     def getEpisodeInfoList(self):
 
