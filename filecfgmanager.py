@@ -67,6 +67,16 @@ class CFGfile(object):
         h = int(duration / 3600)
         m = int(duration % 3600 / 60)
         s = int(duration % 3600 % 60)
+        
+        if m <=9: m = '0'+str(m)
+        if s <=9: s = '0'+str(s)
+        time = str(m)+':'+str(s)
+        
+        if h > 0:
+            if h <=9: h = '0' + str(h)
+            time = h+':'+time
+        
+        return time
 
         if m <= 9: 
             m = '0' + str(m)
