@@ -16,7 +16,7 @@ class CFGfile(object):
     def getEpisodesNumbers(self):
 
         for number in self.episodeList:
-            x = re.findall('\\d+', number[:-1])
+            x = re.findall(r'\d+', number[:-1])
             if x:
                 self.episodeNumbers.add(int(''.join(x)))
 
@@ -37,7 +37,7 @@ class CFGfile(object):
                 t1.join()
                 t2.join()
                 
-                if EPSCONTINUOUS:
+                if EPSCONTINUOUS.get():
                     episodeData = {'temporada' : name[0], 'episodio' : number, 'nome' : name[1], 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
                 else:
                     episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
