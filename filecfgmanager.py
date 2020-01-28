@@ -20,7 +20,7 @@ class CFGfile(object):
             if x:
                 self.episodeNumbers.add(int(''.join(x)))
 
-    def getEpisodeInfo(self, names, season):
+    def getEpisodeInfo(self, names, season, EPSCONTINUOUS):
 
         for number, name in enumerate(names, 1):
             
@@ -37,7 +37,11 @@ class CFGfile(object):
                 t1.join()
                 t2.join()
                 
-                episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
+                if EPSCONTINUOUS:
+                    episodeData = {'temporada' : name[0], 'episodio' : number, 'nome' : name[1], 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
+                else:
+                    episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
+                
                 self.episodeInfoList.append(episodeData)
 
     def getCorretQuality(self, fileName):

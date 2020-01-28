@@ -92,6 +92,7 @@ class autoPage(Frame):
         self.seasonDict = {}
         self.listSeasonBoxSelected = ''
         self.controller = controller
+        self.EPSCONTINUOUS = True
 
         self.linkLabel = Label(self, text = 'Forneça o link da obra', font = ('Calibri', 10, 'italic'), width = 45)
         self.linkLabel.grid(row = 0, column = 0, columnspan = 2, padx = 1)
@@ -184,10 +185,13 @@ class autoPage(Frame):
             self.cfgFileObject.getEpisodesNumbers()
 
             season = self.getSeason()
-            names = self.animeInfo.getAnimeNames(season)
+            if self.EPSCONTINUOUS:
+                names = self.animeInfo.getAnimeNamesContinuous()
+            else:
+                names = self.animeInfo.getAnimeNames(season)
 
             try:
-                self.cfgFileObject.getEpisodeInfo(names, season)
+                self.cfgFileObject.getEpisodeInfo(names, season, self.EPSCONTINUOUS)
             except Exception as fnf:
                 messagebox.showerror('AnieGrabber' , fnf)
                 return

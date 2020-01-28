@@ -11,6 +11,26 @@ class GetUrlInfo(object):
         self.soup = bs.BeautifulSoup(self.sauce, 'lxml')
         self.seasons = self.soup.find_all('li', class_  = 'season')[::-1]
 
+    def getAnimeNamesContinuous(self):
+        
+        for season in self.seasons:    
+            divs = season.find_all('div', class_ = 'wrapper container-shadow hover-classes')
+
+            for div in divs:
+                spans = div.find_all('span', class_ = 'block')
+                if any([re.search(SPECIAL_EPISODE, str(i)) for i in spans]):
+                    div.a.decompose()
+
+        names = []
+
+        for numseason, season in enumerate(self.seasons):
+            _names = season.find_all('img')[::-1]
+            for name in _names:
+                seasonANDname = [numseason+1,name.get('alt')]
+                names.append(seasonANDname)
+
+        return names
+
     def getAnimeNames(self, index):
 
         seasons = self.seasons[index]
