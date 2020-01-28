@@ -1,4 +1,4 @@
-from tkinter import ttk, messagebox, filedialog, Frame, Tk, Label, StringVar, END, DISABLED, PhotoImage, Listbox, Text, Scrollbar
+from tkinter import ttk, messagebox, filedialog, Frame, Tk, Label, StringVar, END, DISABLED, PhotoImage, Listbox, Text, Scrollbar, BooleanVar
 from geturlinfo import urllib, GetUrlInfo
 from filecfgmanager import CFGfile
 import os, sys, re, json
@@ -12,8 +12,7 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-DEBUG = True
-
+DEBUG = False
 class App(Tk):
 
     def __init__(self, *args, **kwargs):
@@ -22,7 +21,7 @@ class App(Tk):
         self.container = Frame(self)
 
         if DEBUG:
-            self.iconbitmap(resource_path(r'assets\\anieGrabberIcon.ico'))
+            self.iconbitmap(resource_path(r'assets\anieGrabberIcon.ico'))
         else:
             self.iconbitmap(resource_path(r'anieGrabberIcon.ico'))
             
@@ -92,23 +91,29 @@ class autoPage(Frame):
         self.seasonDict = {}
         self.listSeasonBoxSelected = ''
         self.controller = controller
-        self.EPSCONTINUOUS = True
+        self.EPSCONTINUOUS = BooleanVar()
 
         self.linkLabel = Label(self, text = 'Forneça o link da obra', font = ('Calibri', 10, 'italic'), width = 45)
         self.linkLabel.grid(row = 0, column = 0, columnspan = 2, padx = 1)
 
+        self.masterFrame = ttk.Frame(self)
+        self.masterFrame.grid(row = 1, column = 0, columnspan = 2, sticky = 'nesw')
+
         self.entryTextLink = StringVar()
-        self.entryLink = ttk.Entry(self, width = 45, textvariable = self.entryTextLink)
-        self.entryLink.grid(row = 1, column = 0, padx = 1)
+        self.entryLink = ttk.Entry(self.masterFrame, width = 45, textvariable = self.entryTextLink)
+        self.entryLink.grid(row = 0, column = 0, padx = 1, sticky = 'w')
 
         if DEBUG:
-            self.searchLogo = PhotoImage(file = resource_path(r'assets\searchIcon.png'))
+            self.searchLogo = PhotoImage(file = resource_path(r'assets\searchButton.png'))
         else:
-            self.searchLogo = PhotoImage(file = resource_path(r'searchIcon.png'))
+            self.searchLogo = PhotoImage(file = resource_path(r'searchButton.png'))
 
-        self.searchButton = ttk.Button(self, image = self.searchLogo, width = 8, command = self.search)
+        self.searchButton = ttk.Button(self.masterFrame, image = self.searchLogo, width = 10, command = self.search)
         self.searchButton.image = self.searchLogo
-        self.searchButton.grid(row = 1, column = 1, padx = 1)
+        self.searchButton.grid(row = 0, column = 1, sticky = 'e')
+
+        self.checkButton = ttk.Checkbutton(self.masterFrame, text = 'Contagem contínua de episódios', onvalue = True, offvalue = False, var = self.EPSCONTINUOUS)
+        self.checkButton.grid(row = 1, column = 0, sticky = 'w')
 
         self.labelSeason = Label(self, text = 'Escolha a Temporada', font = ('Calibri', 10, 'italic'), width = 45)
         self.labelSeason.grid(row = 2, column = 0, pady = 1, padx = 1, columnspan = 2)
@@ -177,15 +182,18 @@ class autoPage(Frame):
         self.entryLink.delete(0, END)
         self.generateCfgButton['state'] = 'disabled'
 
-    def showInfoCommand(self):     
+    def showInfoCommand(self):
         
         if self.fileNames:
+            
+            self.resetEpisodeInfoTextBox()
 
             self.cfgFileObject = CFGfile(self.directoryPath, self.fileNames)
             self.cfgFileObject.getEpisodesNumbers()
 
             season = self.getSeason()
-            if self.EPSCONTINUOUS:
+
+            if self.EPSCONTINUOUS.get():
                 names = self.animeInfo.getAnimeNamesContinuous()
             else:
                 names = self.animeInfo.getAnimeNames(season)
@@ -208,14 +216,15 @@ class autoPage(Frame):
                         self.episodeInfoTextBox.insert(END, str(info) + '\n')
                     self.generateCfgButton['state'] = 'able'
                 else:
-                    self.episodeInfoTextBox.insert(END, '{ Não há episódios para a temporada escolhida }\n')
+                    self.episodeInfoTextBox.insert(END, 'Não há episódios para a temporada escolhida\n')
                
             else:
                 messagebox.showerror('AnieGrabber', 'Parece que um ou mais arquivos estão com o nome icorreto.')
                 self.resetEpisodeInfoTextBox()
                 self.resetSeasonListBox()
                 self.entryLink.delete(0, END)
-                self.fileNames = []
+
+            self.fileNames = []
 
         else:
             messagebox.showwarning('AnieGrabber', 'Não é possível mostrar informações dos arquivos.')
@@ -239,7 +248,6 @@ class autoPage(Frame):
                 self.fileNames.append(re.split('/', name)[-1])
 
             self.showInfoCommand()
-        
 
     def getAnimeInfo(self):
 
@@ -279,7 +287,7 @@ class autoPage(Frame):
         self.seasonList = self.animeInfo.getSeasonName()
         
         if self.seasonList:
-            for num, season in enumerate(self.seasonList, 0):
+            for num, season in enumerate(self.seasonList):
                 self.seasonDict[season] = num
         else:
             self.seasonList.append('Temporada 1')
@@ -292,7 +300,6 @@ class autoPage(Frame):
 
         self.listSeasonBox.delete(0, 'end')
         self.listSeasonBox.insert('end', *self.seasonList)
-        
 
 def main():
 
