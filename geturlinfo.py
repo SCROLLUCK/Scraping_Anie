@@ -1,7 +1,6 @@
 import bs4 as bs
 import urllib.request, re
 from constants import *
-
 class GetUrlInfo(object):
 
     def __init__(self, url):
@@ -23,10 +22,10 @@ class GetUrlInfo(object):
 
         names = []
 
-        for numseason, season in enumerate(self.seasons):
+        for numseason, season in enumerate(self.seasons, 1):
             _names = season.find_all('img')[::-1]
             for name in _names:
-                seasonANDname = [numseason+1,name.get('alt')]
+                seasonANDname = [numseason, name.get('alt')]
                 names.append(seasonANDname)
 
         return names
