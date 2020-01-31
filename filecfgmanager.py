@@ -5,11 +5,10 @@ class CFGfile(object):
 
     def __init__(self, path, episodeList):
         
+        self.path = path
         self.quality = None
         self.duration = None
-        self.isExpection = False
-        self.path = path
-        self.episodeNumbers = set({})
+        self.episodeNumbers = set()
         self.episodeList = episodeList
         self.episodeInfoList = []
     
@@ -27,62 +26,30 @@ class CFGfile(object):
             if number in self.episodeNumbers:
 
                 input_file = self.path + 'episodio-' + str(number) + '.mp4'
-                
-                t1 = Thread(target = self.getCorretDuration, args = (input_file, ))
-                t2 = Thread(target = self.getCorretQuality, args = (input_file, ))
 
-                t1.start()
-                t2.start()
-
-                t1.join()
-                t2.join()
-                
+                quality, length = self.getLengthAndQuality(input_file)
+                                                
                 if EPSCONTINUOUS.get():
-                    episodeData = {'temporada' : name[0], 'episodio' : number, 'nome' : name[1], 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
+                    episodeData = {'temporada' : name[0], 'episodio' : number, 'nome' : name[1], 'duracao' : length, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : quality}
                 else:
-                    episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : self.duration, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : str(self.quality) + 'p' }
+                    episodeData = {'temporada' : season + 1, 'episodio' : number, 'nome' : name, 'duracao' : length, 'thumb' : 'thumb-' + str(number) + '.png', 'qualidade' : quality}
                 
                 self.episodeInfoList.append(episodeData)
 
-    def getCorretQuality(self, fileName):
+    def getLengthAndQuality(self, fileName):
 
-        quality = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                                "stream=height", "-of",
-                                "default=noprint_wrappers=1:nokey=1", fileName],
+        result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries',
+                                'format=duration:stream=height', '-sexagesimal',
+                                '-of', 'default=nw=1:nk=1', fileName],
                                 stdout = subprocess.PIPE,
                                 stderr = subprocess.STDOUT, 
                                 stdin = subprocess.PIPE, 
                                 universal_newlines = True, shell = True)
         
-        self.quality = re.split('\n', quality.stdout)[0]
-
-    def getCorretDuration(self, fileName):
-
-        duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                                "format=duration", "-of",
-                                "default=noprint_wrappers=1:nokey=1", fileName],
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT, 
-                                stdin = subprocess.PIPE, 
-                                shell = True)
-
-        duration = float(duration.stdout)
-
-        h = int(duration / 3600)
-        m = int(duration % 3600 / 60)
-        s = int(duration % 3600 % 60)
-
-        if m <= 9: 
-            m = '0' + str(m)
-        if s <= 9: 
-            s = '0' + str(s)
-
-        duration = str(m) + ':' + str(s)
-
-        if 0 < h <= 9: 
-            duration = '0' + str(h) + ':' + duration
-        
-        self.duration = duration
+        result = re.split('\n', result.stdout)
+        quality = result[0]
+        duration = re.split('\.', result[1])[0]
+        return quality + 'p', duration[2:] if duration[0] == '0' else '0' + duration
 
     def getEpisodeInfoList(self):
 
